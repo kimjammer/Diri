@@ -7,7 +7,7 @@ const {token} = require('./config.json')
 const prefix = "?"
 
 client.commands = new Map();
-const ListOfCommands = ['ping','foo']
+const ListOfCommands = ['ping','foo','args-test']
 let command;
 for (i=0; i<ListOfCommands.length; i++) {
 	commandToRequire = require(`./a/${ListOfCommands[i]}.js`);
