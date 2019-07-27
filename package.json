@@ -4,12 +4,13 @@
   "description": "Discord Interpretation and Recognition Interface",
   "main": "main.js",
   "scripts": {
+    "start": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dbInit": "node dbInit.js"
   },
   "dependencies": {
-    "discord.js": "^11.5.1",
-    "sqlite3": "^4.0.9"
+    "better-sqlite3": "^5.4.1",
+    "discord.js": "^11.5.1"
   },
   "keywords": [
     "Bot"
