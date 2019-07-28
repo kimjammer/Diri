@@ -8,7 +8,7 @@ const {token} = require('./config.json')
 const prefix = "?"
 
 client.commands = new Map();
-client.listOfCommands = ['ping','foo','args-test','points','help']
+client.listOfCommands = ['ping','foo','args-test','points','help'];
 let command;
 for (let i=0; i<client.listOfCommands.length; i++) {
 	let commandToRequire = require(`./a/${client.listOfCommands[i]}.js`);
@@ -18,6 +18,7 @@ for (let i=0; i<client.listOfCommands.length; i++) {
 
 client .on('ready', () => {
 	console.log('Diri is online');
+	client.user.setActivity("?help",{type: "LISTENING"})
 
 	const TableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='UserPoints';",(error,table) =>{
 		if (error){
