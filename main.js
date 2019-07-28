@@ -8,16 +8,17 @@ const {token} = require('./config.json')
 const prefix = "?"
 
 client.commands = new Map();
-const ListOfCommands = ['ping','foo','args-test','points']
+client.listOfCommands = ['ping','foo','args-test','points','help'];
 let command;
-for (i=0; i<ListOfCommands.length; i++) {
-	commandToRequire = require(`./a/${ListOfCommands[i]}.js`);
+for (let i=0; i<client.listOfCommands.length; i++) {
+	let commandToRequire = require(`./a/${client.listOfCommands[i]}.js`);
 	client.commands.set(commandToRequire.name, commandToRequire);
 }
 
 
 client .on('ready', () => {
 	console.log('Diri is online');
+	client.user.setActivity("?help",{type: "LISTENING"})
 
 	const TableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='UserPoints';",(error,table) =>{
 		if (error){
@@ -34,9 +35,6 @@ client .on('ready', () => {
 		}
 		});//end of prepare statement
 		createTable.run();
-	}else{
-		//const createEntry = db.prepare('INSERT INTO UserPoints (id, userId, guildId, username, points, level) VALUES (1, 424546246980665344, 466942731583881226, "kimjammer#4819", 100, 1);',error =>{if (error){console.log(error)}});
-		//createEntry.run();
 	}
 
 
