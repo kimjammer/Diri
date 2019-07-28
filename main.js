@@ -11,7 +11,7 @@ client.commands = new Map();
 client.listOfCommands = ['ping','foo','args-test','points','help']
 let command;
 for (let i=0; i<client.listOfCommands.length; i++) {
-	let commandToRequire = require(`./a/${ListOfCommands[i]}.js`);
+	let commandToRequire = require(`./a/${client.listOfCommands[i]}.js`);
 	client.commands.set(commandToRequire.name, commandToRequire);
 }
 
