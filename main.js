@@ -54,7 +54,7 @@ client.on('message',message => {
 
 	let reply = ''
 
-	if (msgContents.find(element => {return element == command;})) return;
+	if (!client.listOfCommands.find(element => {return element == commandName})) return;
 
 	try {
 		command.execute(message,args,client); //message is the message object so the code can call message.channel.send() or etc
