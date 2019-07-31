@@ -1,18 +1,37 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const Database = require('better-sqlite3')
+client.attachment = Discord.Attachment
+
+const Database = require('better-sqlite3');
 const db = new Database("Database.sqlite");
 
-const {token} = require('./config.json')
-const prefix = "?"
+const {token} = require('./config.json');
+const prefix = "?";
+
+const {	
+	APOD,
+	EARTH,
+	EPIC,
+	MarsPhotos,
+	Sounds
+}  = require('nasa-sdk');
+
+client.nasa = {
+	APOD,
+	EARTH,
+	EPIC,
+	MarsPhotos,
+	Sounds
+};
+
 
 client.commands = new Map();
-client.listOfCommands = ['ping','foo','args-test','points','help'];
+client.listOfCommands = ['ping','foo','args-test','points','help','spacepic','marspic'];
 let command;
 for (let i=0; i<client.listOfCommands.length; i++) {
 	let commandToRequire = require(`./a/${client.listOfCommands[i]}.js`);
-	client.commands.set(commandToRequire.name, commandToRequire);
+	client.commands.set(commandToRequire.name.toLowerCase(), commandToRequire);
 }
 
 
