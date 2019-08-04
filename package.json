@@ -11,7 +11,8 @@
   "dependencies": {
     "better-sqlite3": "^5.4.1",
     "discord.js": "^11.5.1",
-    "nasa-sdk": "^1.1.10"
+    "nasa-sdk": "^1.1.10",
+    "wolfram": "^0.3.4"
   },
   "keywords": [
     "Bot"

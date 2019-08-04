@@ -1,12 +1,13 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-client.attachment = Discord.Attachment
+client.attachment = Discord.Attachment;
+client.richEmbed = Discord.RichEmbed;
 
 const Database = require('better-sqlite3');
 const db = new Database("Database.sqlite");
 
-const {token} = require('./config.json');
+const {token,wolfram_token} = require('./config.json');
 const prefix = "?";
 
 const {	
@@ -25,9 +26,10 @@ client.nasa = {
 	Sounds
 };
 
+client.wolfram = require('wolfram').createClient(wolfram_token);
 
 client.commands = new Map();
-client.listOfCommands = ['ping','foo','args-test','points','help','spacepic','marspic'];
+client.listOfCommands = ['ping','foo','args-test','points','help','spacepic','marspic','ask'];
 let command;
 for (let i=0; i<client.listOfCommands.length; i++) {
 	let commandToRequire = require(`./a/${client.listOfCommands[i]}.js`);
