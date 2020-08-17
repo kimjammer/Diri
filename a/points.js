@@ -1,6 +1,7 @@
 module.exports = {
 	name: 'points',
 	description: 'See your points!',
+	guildOnly: true,
 	execute(message,args,client) {
 		if(args[0]){
 			const mentionedUserId = args[0].slice(2,20);

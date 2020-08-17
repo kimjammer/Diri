@@ -1,6 +1,7 @@
 module.exports = {
 	name: 'MarsPic',
 	description: 'A random picture from one of the mars rovers',
+	guildOnly: false,
 	execute(message,args,client) {
 		message.channel.send('Looking for a picture...')
 		const randomRoverNum = Math.floor(Math.random()*3);
@@ -46,8 +47,8 @@ module.exports = {
 		})
 		.then(data => {	
 			let picNum = 1 //Math.floor(Math.random()*5)
-			const attachment = new client.attachment(data.photos[picNum].img_src);
-			message.channel.send(attachment);
+			//const attachment = new client.attachment(data.photos[picNum].img_src);
+			message.channel.send(new client.attachment(data.photos[picNum].img_src));
 			message.channel.send(`This is from the ${data.photos[picNum].rover.name} rover on sol ${data.photos[picNum].sol}. Taken on the ${data.photos[picNum].camera.full_name}.`)
 		}).catch(err => {
 			console.log(err)

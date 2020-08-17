@@ -9,10 +9,11 @@
     "dbInit": "node dbInit.js"
   },
   "dependencies": {
-    "better-sqlite3": "^5.4.1",
-    "discord.js": "^11.5.1",
+    "better-sqlite3": "^6.0.1",
+    "discord.js": "^12.2.0",
+    "express": "^4.17.1",
     "nasa-sdk": "^1.1.10",
-    "wolfram": "^0.3.4"
+    "wolfram": "git+https://github.com/kimjammer/node-wolfram.git"
   },
   "keywords": [
     "Bot"

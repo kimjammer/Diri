@@ -1,13 +1,15 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-client.attachment = Discord.Attachment;
-client.richEmbed = Discord.RichEmbed;
+client.attachment = Discord.MessageAttachment;
+client.MessageEmbed = Discord.MessageEmbed;
+
+const fs = require('fs');
 
 const Database = require('better-sqlite3');
 const db = new Database("Database.sqlite");
 
-const {token,wolfram_token} = require('./config.json');
+const {token,wolfram_token,nasa_token} = require('./config.json');
 const prefix = "?";
 
 const {	
@@ -15,8 +17,11 @@ const {
 	EARTH,
 	EPIC,
 	MarsPhotos,
-	Sounds
+	Sounds,
+	setNasaApiKey 
 }  = require('nasa-sdk');
+
+
 
 client.nasa = {
 	APOD,
@@ -26,18 +31,36 @@ client.nasa = {
 	Sounds
 };
 
+setNasaApiKey(nasa_token);
+
 client.wolfram = require('wolfram').createClient(wolfram_token);
 
+/////// CALL HTML FOR WEBSITE
+const express = require('express');
+const app = express();
+app.use(express.static('public'));
+
+// http://expressjs.com/en/starter/basic-routing.html
+app.get('/', function(request, response) {
+  response.sendFile(__dirname + '/index.html');
+});
+
+// listen for requests :)
+const listener = app.listen(process.env.PORT, function() {
+  console.log('Your app is listening on port ' + listener.address().port);
+});
+
+//////// END CALL HTML FOR WEBSITE
+
+
 client.commands = new Map();
-client.listOfCommands = ['ping','foo','args-test','points','help','spacepic','marspic','ask'];
-let command;
-for (let i=0; i<client.listOfCommands.length; i++) {
-	let commandToRequire = require(`./a/${client.listOfCommands[i]}.js`);
-	client.commands.set(commandToRequire.name.toLowerCase(), commandToRequire);
+const commandFiles = fs.readdirSync('./a').filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+	const command = require(`./a/${file}`);
+	client.commands.set(command.name.toLowerCase(), command);
 }
 
-
-client .on('ready', () => {
+client.on('ready', () => {
 	console.log('Diri is online');
 	client.user.setActivity("?help",{type: "LISTENING"})
 
@@ -75,7 +98,12 @@ client.on('message',message => {
 
 	let reply = ''
 
-	if (!client.listOfCommands.find(element => {return element == commandName})) return;
+	if (!client.commands.has(commandName)) return;
+
+	if (command.guildOnly && !message.guild) { //If command is guild only and there is no guild that the message was sent from. (Direct message)
+		message.channel.send("You can only use this command in a server.");
+		return;
+	}
 
 	try {
 		command.execute(message,args,client); //message is the message object so the code can call message.channel.send() or etc
@@ -120,3 +148,6 @@ client.on('message',message => {
 });
 
 client.login(token);
+
+//Code to prevent the program from crashing with non-zero exit code.
+process.on('unhandledRejection', error => console.error('Uncaught Promise Rejection', error));

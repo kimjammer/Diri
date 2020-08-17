@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Diri</title>
+    <meta name="description" content="Diri's Website!">
+    <link id="favicon" rel="icon" href="https://www.logolynx.com/images/logolynx/1b/1bcc0f0aefe71b2c8ce66ffe8645d365.png" type="image/x-icon">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    
+  </head>
+  <body>
+    <header>
+      <h1>
+        Diri
+      </h1>
+    </header>
+
+    <main>
+      <p class="bold">Diri, Discord Interpretation and Recognition Interface.</p>
+    
+      <p class="bold">If you see this message, it means that Talker bot is now online.</p>
+      
+    </main>
+
+    <footer>
+      Currently running on <a href="https://glitch.com">Glitch</a>!
+    </footer>
+
+    <!-- include the Glitch button to show what the webpage is about and
+          to make it easier for folks to view source and remix -->
+    <div class="glitchButton" style="position:fixed;top:20px;right:20px;"></div>
+    <script src="https://button.glitch.me/button.js"></script>
+
+  </body>
+</html>
+
+<!-- copy to main.js
+/////// CALL HTML FOR WEBSITE
+const express = require('express');
+const app = express();
+app.use(express.static('public'));
+
+// http://expressjs.com/en/starter/basic-routing.html
+app.get('/', function(request, response) {
+  response.sendFile(__dirname + '/index.html');
+});
+
+// listen for requests :)
+const listener = app.listen(process.env.PORT, function() {
+  console.log('Your app is listening on port ' + listener.address().port);
+});
+
+//////// END CALL HTML FOR WEBSITE
+
+copy this to package.json
+,
+    "express":"^4.17.1"
+-->
