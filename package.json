@@ -11,7 +11,6 @@
   "dependencies": {
     "better-sqlite3": "^6.0.1",
     "discord.js": "^12.2.0",
-    "express": "^4.17.1",
     "nasa-sdk": "^1.1.10",
     "wolfram": "git+https://github.com/kimjammer/node-wolfram.git"
   },

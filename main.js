@@ -35,24 +35,6 @@ setNasaApiKey(nasa_token);
 
 client.wolfram = require('wolfram').createClient(wolfram_token);
 
-/////// CALL HTML FOR WEBSITE
-const express = require('express');
-const app = express();
-app.use(express.static('public'));
-
-// http://expressjs.com/en/starter/basic-routing.html
-app.get('/', function(request, response) {
-  response.sendFile(__dirname + '/index.html');
-});
-
-// listen for requests :)
-const listener = app.listen(process.env.PORT, function() {
-  console.log('Your app is listening on port ' + listener.address().port);
-});
-
-//////// END CALL HTML FOR WEBSITE
-
-
 client.commands = new Map();
 const commandFiles = fs.readdirSync('./a').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
