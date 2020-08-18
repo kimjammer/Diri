@@ -32,7 +32,7 @@ module.exports = {
             .addField("Channel Count", guild_channels_info, false)
             .addField("Nitro Info", guild_nitro_info, false)
             .addField("Member Info", guild_members_info, false)
-            .setFooter(`Information fetched on: ${date_obj.toDateString()}`,crr_guild.iconURL)
+            .setFooter(`Information fetched on: ${date_obj.toDateString()}`,crr_guild.iconURL())
             .setThumbnail(crr_guild.iconURL())
 
         message.channel.send(embed);

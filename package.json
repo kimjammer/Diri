@@ -1,8 +1,13 @@
 {
   "name": "Diri",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Discord Interpretation and Recognition Interface",
+  "homepage": "https://diri-robot.web.app/",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kimjammer/Diri.git"
+  },
   "scripts": {
     "start": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,9 +15,10 @@
   },
   "dependencies": {
     "better-sqlite3": "^6.0.1",
-    "discord.js": "^12.2.0",
+    "discord.js": "^12.3.1",
     "nasa-sdk": "^1.1.10",
-    "wolfram": "git+https://github.com/kimjammer/node-wolfram.git"
+    "wolfram": "git+https://github.com/kimjammer/node-wolfram.git",
+    "xhr2": "^0.2.0"
   },
   "keywords": [
     "Bot"

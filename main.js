@@ -33,6 +33,8 @@ client.nasa = {
 
 setNasaApiKey(nasa_token);
 
+client.XMLHttpRequest = require('xhr2');
+
 client.wolfram = require('wolfram').createClient(wolfram_token);
 
 client.commands = new Map();
