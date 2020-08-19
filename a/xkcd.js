@@ -5,15 +5,6 @@ module.exports = {
     execute(message,args,client) {
         message.channel.send("Fetching comic")
 
-        let xkcdUrl;
-
-        if (args[0]) {
-            xkcdUrl = `http://xkcd.com/${args[0]}/info.0.json`
-        }else {
-            xkcdUrl = "http://xkcd.com/info.0.json"
-        }
-
-
         const sendResult = (result) => {
             const embed = new client.MessageEmbed() //this is Discord.MessageEmbed but put into client for easy access
                 .setAuthor('Diri','https://kimjammer.github.io/Portfolio/img/Diri.png','https://diri-robot.web.app/')
@@ -26,21 +17,41 @@ module.exports = {
             message.channel.send(embed);
         };
 
-        const getxkcd = () => {
+        const getxkcd = (xkcdUrl, isNumCheck) => {
             const xhr = new client.XMLHttpRequest();
 
             xhr.responseType = 'json';
 
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === client.XMLHttpRequest.DONE) {
-                    sendResult(xhr.response);
+                	if (isNumCheck) {
+                        determineXkcdNumValidity (xhr.response.num);
+                	}else {
+                		sendResult(xhr.response);
+                	}
                 }
             };
             xhr.open('GET',xkcdUrl);
             xhr.send();
         }
 
-        getxkcd();
+        function determineXkcdNumValidity (latestXkcdNum) {
+            if (args[0] <= latestXkcdNum) {
+                xkcdUrl = `http://xkcd.com/${args[0]}/info.0.json`
+                getxkcd(xkcdUrl, false);
+            }else {
+                message.channel.send("That xkcd comic doesn't exist!")
+            }
+        }
 
+        let xkcdUrl;
+
+        if (args[0]) {
+            //call getxkcd, but with the isNumCheck on. This will tell it to check the num, and call itself again if the number is valid.
+            getxkcd("http://xkcd.com/info.0.json", true);
+        }else {
+            xkcdUrl = "http://xkcd.com/info.0.json"
+            getxkcd(xkcdUrl, false);
+        }
     }
 };
