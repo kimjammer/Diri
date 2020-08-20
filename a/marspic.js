@@ -1,6 +1,8 @@
 module.exports = {
 	name: 'MarsPic',
 	description: 'A random picture from one of the mars rovers',
+	usage: `?marsPic [optional: curiosity/opportunity/spirit]`,
+	category: "fun",
 	guildOnly: false,
 	execute(message,args,client) {
 		message.channel.send('Looking for a picture...')

@@ -3,6 +3,7 @@ const client = new Discord.Client();
 
 client.attachment = Discord.MessageAttachment;
 client.MessageEmbed = Discord.MessageEmbed;
+client.ReactionCollector = Discord.ReactionCollector;
 
 const fs = require('fs');
 

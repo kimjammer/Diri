@@ -1,6 +1,8 @@
 module.exports = {
 	name: 'ask',
 	description: 'Ask anything!',
+	usage: `?ask [question]`,
+	category: "general",
 	guildOnly: false,
 	execute(message,args,client) {
 		message.channel.send('Looking for an answer...')

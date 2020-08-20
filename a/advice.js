@@ -1,6 +1,8 @@
 module.exports = {
     name: 'advice',
     description: 'Gives some good advice',
+    usage: `?advice`,
+    category: "fun",
     guildOnly: false,
     execute(message,args,client) {
         message.channel.send("Getting advice...")

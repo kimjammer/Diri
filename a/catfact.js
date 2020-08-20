@@ -1,6 +1,8 @@
 module.exports = {
     name: 'catFact',
     description: 'A random fact about cats will be given',
+    usage: `?catFact`,
+    category: "fun",
     guildOnly: false,
     execute(message,args,client) {
         message.channel.send("Getting a cat fact...")

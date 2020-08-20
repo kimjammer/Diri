@@ -1,6 +1,8 @@
 module.exports = {
     name: 'server',
     description: 'Provides interesting information about the server',
+    usage: `?server`,
+    category: "general",
     guildOnly: true,
     execute(message,args,client) {
         const date_obj = new Date();

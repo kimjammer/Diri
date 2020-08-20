@@ -1,6 +1,8 @@
 module.exports = {
 	name: 'SpacePic',
 	description: 'Nasa\'s Astronomy Picture of the Day.',
+	usage: `?spacePic`,
+	category: "fun",
 	guildOnly: false,
 	execute(message,args,client) {
 		let pictureInfo;

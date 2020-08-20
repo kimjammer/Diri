@@ -1,6 +1,8 @@
 module.exports = {
     name: 'xkcd',
     description: 'Returns today\'s comic or a specific one by id.',
+    usage: `?xkcd [optional: comic number]`,
+    category: "fun",
     guildOnly: false,
     execute(message,args,client) {
         message.channel.send("Fetching comic")

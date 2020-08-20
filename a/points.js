@@ -1,6 +1,8 @@
 module.exports = {
 	name: 'points',
 	description: 'See your points!',
+	usage: `?points`,
+	category: "general",
 	guildOnly: true,
 	execute(message,args,client) {
 		if(args[0]){

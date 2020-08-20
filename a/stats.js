@@ -1,6 +1,8 @@
 module.exports = {
     name: 'stats',
     description: 'Provides interesting information about the bot',
+    usage: `?stats`,
+    category: "general",
     guildOnly: false,
     execute(message,args,client) {
         const date_obj = new Date();
