@@ -93,13 +93,30 @@ module.exports = {
 
 		}else { //If there are arguments and it is asking for info on a specific command
 			let reply;
+			let serverOnlyTxt;
 			if (client.commands.has(args[0])) {
-				reply = client.commands.get(args[0]).name + ": " + client.commands.get(args[0]).description;
+
+				//See if the command is guildOnly.
+				if (client.commands.get(args[0]).guildOnly) {
+					serverOnlyTxt = "Yes";
+				}else {
+					serverOnlyTxt = "No";
+				}
+
+				//Create new embed with information about the requested command
+				const commandEmbed = new client.MessageEmbed()
+					.setAuthor('Diri','https://kimjammer.github.io/Portfolio/img/Diri.png','https://diri-robot.web.app/')
+					.setColor(0x03fc30)
+					.setTitle(client.commands.get(args[0]).name)
+					.addField(`Description:`, client.commands.get(args[0]).description, false)
+					.addField(`Usage:`, `\`${client.commands.get(args[0]).usage}\``, false)
+					.addField(`Only usable in servers?`, `${serverOnlyTxt}`,false)
+
+				message.channel.send(commandEmbed);
 			}else{
 				reply = "That command doesn't exist!"
+				message.channel.send(reply);
 			}
-
-			message.channel.send(reply);
 		}
 
 
