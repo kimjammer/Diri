@@ -8,7 +8,13 @@ client.ReactionCollector = Discord.ReactionCollector;
 const fs = require('fs');
 
 const Database = require('better-sqlite3');
-const db = new Database("Database.sqlite");
+//If the database file does not exist at the expected location, create it.
+const dblocation = '/dbs/Diri/Database.sqlite';
+const dirName = require('path').dirname(dblocation);
+if (!fs.existsSync(dirName)) {
+	fs.mkdirSync(dirName, { recursive: true });
+}
+const db = new Database("/dbs/Diri/Database.sqlite");
 
 const {token,wolfram_token,nasa_token} = require('./config.json');
 const prefix = "?";
@@ -55,7 +61,6 @@ client.on('ready', () => {
 		}
 			return table;
 		});
-	//console.log(!!TableExists.get())
 	if (!TableExists.get()){
 		const createTable = db.prepare("CREATE TABLE UserPoints (id INTEGER PRIMARY KEY NOT NULL, userId TEXT NOT NULL, guildId TEXT NOT NULL, username TEXT, points INTEGER, level INTEGER);", error => {
 		console.log('Initilized!')

@@ -10,14 +10,13 @@
   },
   "scripts": {
     "start": "node main.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dbInit": "node dbInit.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "better-sqlite3": "^6.0.1",
-    "discord.js": "^12.3.1",
+    "better-sqlite3": "^7.1.1",
+    "discord.js": "^12.5.1",
     "nasa-sdk": "^1.1.10",
-    "wolfram": "git+https://github.com/kimjammer/node-wolfram.git",
+    "wolfram": "kimjammer/node-wolfram",
     "xhr2": "^0.2.0"
   },
   "keywords": [
