@@ -5,5 +5,5 @@ services:
     build: .
     volumes:
       - type: bind
-        source: ../diri-dbs
+        source: ../databases
         target: /dbs/Diri
