@@ -83,9 +83,6 @@ module.exports = {
 			camera: queryInfo.cam
 		})
 		.then(data => {
-			//remove this
-			console.log(trycount);
-
 			let picNum = 1
 			message.channel.send(new client.attachment(data.photos[picNum].img_src));
 			message.channel.send(`This is from the ${data.photos[picNum].rover.name} rover on sol ${data.photos[picNum].sol}. Taken on the ${data.photos[picNum].camera.full_name}.`)
