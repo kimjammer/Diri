@@ -9,6 +9,9 @@ module.exports = {
 
         const sendResult = (result) => {
             message.channel.send(`\`${result.slip.advice}\``)
+            if (client.debugMode) {
+                message.channel.send(`DEBUG MODE: Advice slip ID is ${result.slip.slip_id}`)
+            }
         };
 
         const getAdvice = () => {

@@ -10,10 +10,10 @@ module.exports = {
 		let rover = "";
 		let queryInfo = {};
 		//This variable counts the number of times that Diri tries to get a picture. If it exceeds 15 attempts, it will stop trying.
-		let trycount = 0
+		let trycount = 0;
 
 		//If there is a rover specified, get a random day to get a picture from specified rover.
-		if (args[0]) {
+		if (args[0] && args[0] != "debug") {
 			/*Basically, diri picks a random number with the max being the latest sol the rover has lived on mars.
 			Then, it makes a request to the nasa api and gets all the pictures taken that day with a specific camera,
 			one that I know has good pictures. It looks at the recieved info and sees if there were any pictures taken
@@ -37,7 +37,7 @@ module.exports = {
 					queryInfo.sol = Math.floor(Math.random()*2208);
 					queryInfo.cam = 'pancam';
 				}else{
-					message.channel.send("Please enter a valid rover name. curiosity, spirit, opportunity.")
+					message.channel.send("Please use a valid rover name. curiosity, spirit, opportunity. `?MarsPic Curiosity/Spirit/Opportunity`")
 					return;
 				}
 			} while (await pictureExistsOnSol(queryInfo.sol,queryInfo.cam,rover) == "no" && trycount < 15);
@@ -86,12 +86,21 @@ module.exports = {
 			let picNum = 1
 			message.channel.send(new client.attachment(data.photos[picNum].img_src));
 			message.channel.send(`This is from the ${data.photos[picNum].rover.name} rover on sol ${data.photos[picNum].sol}. Taken on the ${data.photos[picNum].camera.full_name}.`)
+			if (client.debugMode) {
+				message.channel.send((`DEBUG MODE: This picture took ${trycount} tries.`))
+			}
 		}).catch(err => {
 			console.log(err)
 			if (trycount >= 15) {
 				message.channel.send('I couldn\'t retrieve a picture within 15 tries. Try again!')
+				if (client.debugMode) {
+					message.channel.send((`DEBUG MODE: This picture took ${trycount} tries.`))
+				}
 			}else {
 				message.channel.send(`I couldn\`t retrieve a picture.`);
+				if (client.debugMode) {
+					message.channel.send((`DEBUG MODE: This picture took ${trycount} tries. Error: ${err}`))
+				}
 			}
 		});
 	}

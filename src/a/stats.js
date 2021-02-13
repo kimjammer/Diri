@@ -27,7 +27,7 @@ module.exports = {
         let stats_general_info = `Created on: ${client.user.createdAt.toDateString()} 
         ID: ${client.user.id}
         Number of Commands: ${client.commands.size}
-        Version: 1.1.0
+        Version: 1.3.0
         Creator: KimJammer#4819`;
 
         let stats_usage_info = `Servers: ${client.guilds.cache.size}

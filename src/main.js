@@ -5,16 +5,36 @@ client.attachment = Discord.MessageAttachment;
 client.MessageEmbed = Discord.MessageEmbed;
 client.ReactionCollector = Discord.ReactionCollector;
 
+//Your(the bot creator's) user ID here. Only used for debug mode.
+const botAuthor = "424546246980665344"
+
 const fs = require('fs');
 
 const Database = require('better-sqlite3');
-//If the database file does not exist at the expected location, create it.
-const dblocation = '/dbs/Diri/Database.sqlite';
-const dirName = require('path').dirname(dblocation);
+//Check if the path that is autocreated by docker exists.
+let dblocation = '/dbs/Diri';
+let dirName = require('path').dirname(dblocation);
+//If the path does not exist then we are running as node application!
 if (!fs.existsSync(dirName)) {
-	fs.mkdirSync(dirName, { recursive: true });
+	console.log("Running on basic Node.js detected.")
+	//Now check if the file exists at predicted node location
+	dblocation = '../databases/Database.sqlite'
+	dirName = require('path').dirname(dblocation);
+	//If the database doesn't exist, create it.
+	if (!fs.existsSync(dirName)) {
+		fs.mkdirSync(dirName, { recursive: true });
+	}
+}else{
+	console.log("Running in docker detected.");
+	//Now check if the file exists at the predicted docker location
+	dblocation = '/dbs/Diri/Database.sqlite'
+	dirName = require('path').dirname(dblocation);
+	//If the database doesn't exist, create it.
+	if (!fs.existsSync(dirName)) {
+		fs.mkdirSync(dirName, {recursive: true});
+	}
 }
-const db = new Database("/dbs/Diri/Database.sqlite");
+const db = new Database(dblocation);
 
 const {token,wolfram_token,nasa_token} = require('./config.json');
 const prefix = "?";
@@ -93,6 +113,16 @@ client.on('message',message => {
 	if (command.guildOnly && !message.guild) { //If command is guild only and there is no guild that the message was sent from. (Direct message)
 		message.channel.send("You can only use this command in a server.");
 		return;
+	}
+
+	//if the last argument is debug, and the sender is the bot's creator, do debug things
+	client.debugMode = false;
+	if (args[args.length - 1] == "debug") {
+		if (message.author.id == botAuthor) {
+			client.debugMode = true;
+		}else{
+			message.channel.send(`Debug Mode Access Denied.`)
+		}
 	}
 
 	try {

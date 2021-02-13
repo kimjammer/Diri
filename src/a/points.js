@@ -6,7 +6,7 @@ module.exports = {
 	guildOnly: true,
 	execute(message,args,client) {
 		if(args[0]){
-			const mentionedUserId = args[0].slice(2,20);
+			const mentionedUserId = args[0].slice(3,21);
 			if (client.getPoints.get(mentionedUserId,message.guild.id)){
 				const userScore = client.getPoints.get(mentionedUserId,message.guild.id);
 				message.channel.send(`${userScore.username} has ${userScore.points} points and are level ${userScore.level}!`);
