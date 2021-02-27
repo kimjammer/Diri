@@ -11,8 +11,10 @@ const botAuthor = "424546246980665344"
 const fs = require('fs');
 
 const Database = require('better-sqlite3');
+
+//This code checks whether diri is running in normal node.js or docker, so it knows where it should look for/put its database.
 //Check if the path that is autocreated by docker exists.
-let dblocation = '/dbs/Diri';
+let dblocation = '/dbs/Diri'; //This assumes that you don't have the folder Diri in folder dbs in your root directory.
 let dirName = require('path').dirname(dblocation);
 //If the path does not exist then we are running as node application!
 if (!fs.existsSync(dirName)) {

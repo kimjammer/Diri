@@ -1,6 +1,6 @@
 {
   "name": "Diri",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Discord Interpretation and Recognition Interface",
   "homepage": "https://diri-robot.web.app/",
   "main": "main.js",
@@ -15,7 +15,7 @@
   "dependencies": {
     "better-sqlite3": "^7.1.1",
     "discord.js": "^12.5.1",
-    "nasa-sdk": "^1.1.10",
+    "nasa-sdk": "github:kimjammer/nasa-sdk",
     "wolfram": "kimjammer/node-wolfram",
     "xhr2": "^0.2.0"
   },

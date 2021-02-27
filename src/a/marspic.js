@@ -1,12 +1,12 @@
 module.exports = {
 	name: 'MarsPic',
 	description: 'A random picture from one of the mars rovers',
-	usage: `?marsPic [optional: curiosity/opportunity/spirit]`,
+	usage: `?marsPic [optional: curiosity/opportunity/spirit/perseverance]`,
 	category: "fun",
 	guildOnly: false,
 	async execute (message,args,client) {
 		message.channel.send('Looking for a picture...')
-		const randomRoverNum = Math.floor(Math.random()*3);
+		const randomRoverNum = Math.floor(Math.random()*4);
 		let rover = "";
 		let queryInfo = {};
 		//This variable counts the number of times that Diri tries to get a picture. If it exceeds 15 attempts, it will stop trying.
@@ -36,8 +36,18 @@ module.exports = {
 					rover = "spirit";
 					queryInfo.sol = Math.floor(Math.random()*2208);
 					queryInfo.cam = 'pancam';
+				}else if (args[0] == "perseverance") {
+					rover = "perseverance"
+					//DEBUGGING FIX NEXT LINE
+					queryInfo.sol = Math.floor(2);
+					message.channel.send("For now, there are only color rover images from 1 mars day. Perseverance pictures will not be randomly chosen if `?MarsPic`");
+					if (Math.floor(Math.random()*2) == 0) {
+						queryInfo.cam = 'mcz_right';
+					}else {
+						queryInfo.cam = 'mcz_left';
+					}
 				}else{
-					message.channel.send("Please use a valid rover name. curiosity, spirit, opportunity. `?MarsPic Curiosity/Spirit/Opportunity`")
+					message.channel.send("Please use a valid rover name: curiosity, spirit, opportunity, or perseverance. `?MarsPic Curiosity/Spirit/Opportunity/Perseverance`")
 					return;
 				}
 			} while (await pictureExistsOnSol(queryInfo.sol,queryInfo.cam,rover) == "no" && trycount < 15);
@@ -54,11 +64,16 @@ module.exports = {
 					rover = "opportunity";
 					queryInfo.sol = Math.floor(Math.random()*5111);
 					queryInfo.cam = 'pancam';
-				}else{
+				}else /*if (randomRoverNum === 2)*/{ //Getting a random photo from perseverance is disabled for now. Not enough pictures.
 					rover = "spirit";
 					queryInfo.sol = Math.floor(Math.random()*2208);
 					queryInfo.cam = 'pancam';
-				}
+				}/*else{
+					rover = "perseverance"
+					//DEBUGGING CHANGE NEXT LINE
+					queryInfo.sol = Math.floor(2);
+					queryInfo.cam = 'mcz_right';
+				}*/
 
 			} while (await pictureExistsOnSol(queryInfo.sol,queryInfo.cam,rover) == "no" && trycount < 15) ;
 		}

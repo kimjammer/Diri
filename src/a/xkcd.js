@@ -40,7 +40,7 @@ module.exports = {
         }
 
         function determineXkcdNumValidity (latestXkcdNum) {
-            if (args[0] <= latestXkcdNum) {
+            if (args[0] <= latestXkcdNum && args[0] != 404) {
                 xkcdUrl = `http://xkcd.com/${args[0]}/info.0.json`
                 getxkcd(xkcdUrl, false);
             }else {
@@ -49,8 +49,13 @@ module.exports = {
         }
 
         function sendRandomComic (maxXkcdNum) {
-            //Choose a random number from 1 to the latest xkcd number
-            let randomXkcdNum = Math.floor(Math.random() * maxXkcdNum) + 1;
+            //Get a random comic number and make sure it isn't 404 since that crashes the bot.
+            let randomXkcdNum = 404;
+            do {
+                //Choose a random number from 1 to the latest xkcd number
+                randomXkcdNum = Math.floor(Math.random() * maxXkcdNum) + 1;
+            } while (randomXkcdNum == 404)
+
             //Create the xkcd url with the random number
             xkcdUrl = `http://xkcd.com/${randomXkcdNum}/info.0.json`;
             //Get and send the results

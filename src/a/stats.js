@@ -7,6 +7,9 @@ module.exports = {
     execute(message,args,client) {
         const date_obj = new Date();
 
+        //Get information from package.json file
+        const {version} = require('../package.json');
+
         function msToHumanReadable( ms ) {
             // 1- Convert to seconds:
             let seconds = ms / 1000;
@@ -27,14 +30,14 @@ module.exports = {
         let stats_general_info = `Created on: ${client.user.createdAt.toDateString()} 
         ID: ${client.user.id}
         Number of Commands: ${client.commands.size}
-        Version: 1.3.0
+        Version: ${version}
         Creator: KimJammer#4819`;
 
         let stats_usage_info = `Servers: ${client.guilds.cache.size}
         Channels: ${client.channels.cache.size}`
 
-        let stats_softwareHardware_info = `Discord.js Version: 12.3.1
-        Node Version: 12.18.3
+        let stats_softwareHardware_info = `Discord.js Version: 12.5.1
+        Node Version: ${process.version}
         Operating System: Ubuntu Server 20.04 LTS
         Uptime: ${msToHumanReadable(client.uptime)}`
 
