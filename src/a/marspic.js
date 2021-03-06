@@ -39,8 +39,8 @@ module.exports = {
 				}else if (args[0] == "perseverance") {
 					rover = "perseverance"
 					//DEBUGGING FIX NEXT LINE
-					queryInfo.sol = Math.floor(2);
-					message.channel.send("For now, there are only color rover images from 1 mars day. Perseverance pictures will not be randomly chosen if `?MarsPic`");
+					queryInfo.sol = Math.floor(11);
+					message.channel.send("For now, there are only color rover images from a few mars days. Perseverance pictures will not be randomly chosen if `?MarsPic`");
 					if (Math.floor(Math.random()*2) == 0) {
 						queryInfo.cam = 'mcz_right';
 					}else {
@@ -71,7 +71,7 @@ module.exports = {
 				}/*else{
 					rover = "perseverance"
 					//DEBUGGING CHANGE NEXT LINE
-					queryInfo.sol = Math.floor(2);
+					queryInfo.sol = Math.floor(11);
 					queryInfo.cam = 'mcz_right';
 				}*/
 
