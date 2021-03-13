@@ -8,6 +8,14 @@ client.ReactionCollector = Discord.ReactionCollector;
 //Your(the bot creator's) user ID here. Only used for debug mode.
 const botAuthor = "424546246980665344"
 
+//ytdl so the bot can stream music to a voice channel
+client.ytdl = require('ytdl-core');
+//This object stores key:[musicStream,voiceChannel] pairs which represent music streams
+//and the voice channel they're in. {guildID: [musicStream,voiceChannel], guildID: [musicStream,voiceChannel]}
+client.musicStreams = {};
+
+client.ytfps = require('ytfps');
+
 const fs = require('fs');
 
 const Database = require('better-sqlite3');
@@ -41,13 +49,13 @@ const db = new Database(dblocation);
 const {token,wolfram_token,nasa_token} = require('./config.json');
 const prefix = "?";
 
-const {	
+const {
 	APOD,
 	EARTH,
 	EPIC,
 	MarsPhotos,
 	Sounds,
-	setNasaApiKey 
+	setNasaApiKey
 }  = require('nasa-sdk');
 
 
@@ -106,7 +114,16 @@ client.on('message',message => {
 	let msgContents = message.content.slice(prefix.length).split(/ +/);
 	let commandName = msgContents.shift().toLowerCase();
 	let command = client.commands.get(commandName);
-	let args = msgContents.map(element => {return element.toLowerCase();});
+	let args = msgContents.map(element => {
+		//Dark regular expression magic that will check if a string is a youtube video link.
+		let ytLinkRegex = new RegExp('(?:.+?)?(?:\\/v\\/|watch\\/|\\?v=|\\&v=|youtu\\.be\\/|\\/v=|^youtu\\.be\\/|watch\\%3Fv\\%3D)([a-zA-Z0-9_-]{11})+')
+		//If the argument is a yt link (for the music section) don't make it lowercase. (YT links are case sensitive)
+		if (ytLinkRegex.test(element)) {
+			return element;
+		}else{
+			return element.toLowerCase();
+		}
+	});
 
 	let reply = ''
 
@@ -165,7 +182,7 @@ client.on('message',message => {
 	} //if points is greater than level times 100, add level and reset points.
 
 	client.setPoints.run(userScore); //enter everything into database.
-	
+
 
 });
 

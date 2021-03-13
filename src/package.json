@@ -13,11 +13,15 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@discordjs/opus": "^0.4.0",
     "better-sqlite3": "^7.1.1",
     "discord.js": "^12.5.1",
-    "nasa-sdk": "github:kimjammer/nasa-sdk",
+    "ffmpeg-static": "^4.2.7",
+    "nasa-sdk": "^1.1.11",
     "wolfram": "kimjammer/node-wolfram",
-    "xhr2": "^0.2.0"
+    "xhr2": "^0.2.0",
+    "ytdl-core": "^4.5.0",
+    "ytfps": "^1.0.4"
   },
   "keywords": [
     "Bot"
