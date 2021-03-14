@@ -27,21 +27,24 @@ module.exports = {
 			}
 
 			if (args[1] == "jazz") {
-				//Adds a property:item pair - guildID: [musicStream,voiceChannel] to the musicStreams object so it can be accessed later.
-				client.ytfps('PL_pFtRZACW0Yy2D-J5MRWAer2Ii6xQIst').then(playlist => {
+				try {
+					const playlist = await client.ytfps('PL_pFtRZACW0Yy2D-J5MRWAer2Ii6xQIst');
+
 					//Pick random number
 					let randomJazzNumber = Math.floor(Math.random()*playlist.video_count);
 
 					let randomJazzSong = playlist.videos[randomJazzNumber]
 
+					//Adds a property:item pair - guildID: [musicStream,voiceChannel] to the musicStreams object so it can be accessed later.
 					//Play the random jazz music
 					client.musicStreams[`${message.guild.id}`] = [connection.play(client.ytdl(`${randomJazzSong.url}`, { filter: 'audioonly' })), message.member.voice.channel];
 
 					//Tell the user
 					message.channel.send(`Playing the random jazz song: `+"<"+`${randomJazzSong.title}`+">"+`. It is ${randomJazzSong.length} long. ${randomJazzSong.url}`)
-				}).catch(err => {
+				}catch(err) {
 					throw err;
-				});
+					return;
+				};
 			}else if (ytLinkRegex.test(args[1])) {
 				//Play the youtube video
 				client.musicStreams[`${message.guild.id}`] = [connection.play(client.ytdl(`${args[1]}`, { filter: 'audioonly' })), message.member.voice.channel];
@@ -50,7 +53,18 @@ module.exports = {
 				message.channel.send(`Playing the youtube video: `+"<"+`${args[1]}`+">")
 			}else {
 				message.channel.send("That's not a valid option or youtube link!");
+				return;
 			}
+
+			//When song is finished, delete dispatcher and leave.
+			client.musicStreams[`${message.guild.id}`][0].on("finish", () => {
+				//Destroy music dispatcher
+				client.musicStreams[`${message.guild.id}`][0].destroy();
+				//Leave voice channel
+				client.musicStreams[`${message.guild.id}`][1].leave();
+				//Delete musicStream entry from client.musicStreams
+				delete client.musicStreams[`${message.guild.id}`]
+			})
 
 		}else if (args[0] == "pause") {
 			//Check if there isn't a music stream in this server
@@ -62,7 +76,6 @@ module.exports = {
 			//Pause the music stream
 			client.musicStreams[`${message.guild.id}`][0].pause();
 			message.channel.send("Music Paused");
-
 		}else if (args[0] == "resume" || args[0] == "play"){
 			//Check if there isn't a music stream in this server
 			if (!client.musicStreams[`${message.guild.id}`][0].paused) {
@@ -73,7 +86,6 @@ module.exports = {
 			//Resume the music stream
 			client.musicStreams[`${message.guild.id}`][0].resume();
 			message.channel.send("Music Resumed");
-
 		}else if (args[0] == "end"||args[0] == "stop"){
 			//Check if there isn't a music stream in this server
 			if (!client.musicStreams[`${message.guild.id}`]) {
@@ -108,14 +120,6 @@ module.exports = {
 			message.channel.send("That's not a valid music command!");
 		}
 
-		//When song is finished, delete dispatcher and leave.
-		client.musicStreams[`${message.guild.id}`][0].on("finish", () => {
-			//Destroy music dispatcher
-			client.musicStreams[`${message.guild.id}`][0].destroy();
-			//Leave voice channel
-			client.musicStreams[`${message.guild.id}`][1].leave();
-			//Delete musicStream entry from client.musicStreams
-			delete client.musicStreams[`${message.guild.id}`]
-		})
+
 	}
 };
