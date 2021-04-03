@@ -1,6 +1,6 @@
 {
   "name": "Diri",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Discord Interpretation and Recognition Interface",
   "homepage": "https://diri-robot.web.app/",
   "main": "main.js",

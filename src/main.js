@@ -74,6 +74,13 @@ client.XMLHttpRequest = require('xhr2');
 
 client.wolfram = require('wolfram').createClient(wolfram_token);
 
+//Temporary April Fools joke
+/* To activate, get translate on npm, or insert ["translate": "^1.2.3",] into package.json
+const translate = require("translate");
+translate.engine = "libre";
+translate.url = "https://libretranslate.com/translate"
+ */
+
 client.commands = new Map();
 const commandFiles = fs.readdirSync('./a').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
@@ -109,7 +116,21 @@ client.on('ready', () => {
 });
 
 client.on('message',message => {
+
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
+	//Temporary April Fools Joke
+	/*
+	if (message.author.bot) return;
+	if (!message.content.startsWith(prefix)) {
+		try {
+			//If message isn't command, do the random translation now, and return
+			randomTranslate(message);
+		}catch (e) {
+			console.log(e);
+		}
+		return;
+	}
+	 */
 
 	let msgContents = message.content.slice(prefix.length).split(/ +/);
 	let commandName = msgContents.shift().toLowerCase();
@@ -185,6 +206,28 @@ client.on('message',message => {
 
 
 });
+
+//Temporary April Fools Joke
+/*
+async function randomTranslate (message) {
+	//Bypass translation for me if I want to
+	if (message.author.id == 424546246980665344 && message.content.startsWith(".")) return;
+
+	//English names of languages
+	const languageNames = ["Spanish","Arabic","Chinese","French","German","Hindi","Irish","Italian","Japanese","Korean","Portuguese","Russian"]
+	//Get text of original message
+	let originalText = message.content;
+	//Get random language to translate into
+	let randomLanguageNum = Math.floor(Math.random()*11)
+	let randomLanguage = ["es","ar","zh","fr","de","hi","ga","it","ja","ko","pt","ru"][randomLanguageNum];
+	//Get translation of Message
+	let translatedMessage = await translate(originalText,{to:randomLanguage});
+	//Send translated message. "In random_language, @someone said: their_message"
+	message.channel.send(`In ${languageNames[randomLanguageNum]}, <@${message.author.id}> said: ${translatedMessage}`)
+	//Delete original message
+	message.delete();
+}
+ */
 
 client.login(token);
 
