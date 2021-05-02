@@ -9,6 +9,12 @@ module.exports = {
 		const randomRoverNum = Math.floor(Math.random()*4);
 		let rover = "";
 		let queryInfo = {};
+		//These next four variables hold a so called "cache" of the latest Sol for each rover, refreshed at command call,
+		//so it doesn't request them each time it attempts to get a picture.
+		let curiosityMaxSol = 0;
+		let opportunityMaxSol = 0;
+		let spiritMaxSol = 0;
+		let perseveranceMaxSol = 0;
 		//This variable counts the number of times that Diri tries to get a picture. If it exceeds 15 attempts, it will stop trying.
 		let trycount = 0;
 
@@ -26,21 +32,31 @@ module.exports = {
 
 				if (args[0] == "curiosity") {
 					rover = "curiosity";
-					queryInfo.sol = Math.floor(Math.random()*3023);
+					if (curiosityMaxSol == 0) {
+						curiosityMaxSol = await latestRoverSol('curiosity')
+					}
+					queryInfo.sol = Math.floor(Math.random()*curiosityMaxSol);
 					queryInfo.cam = 'mast';
 				}else if (args[0] == "opportunity") {
 					rover = "opportunity";
-					queryInfo.sol = Math.floor(Math.random()*5111);
+					if (opportunityMaxSol == 0) {
+						opportunityMaxSol = await latestRoverSol('opportunity')
+					}
+					queryInfo.sol = Math.floor(Math.random()*opportunityMaxSol);
 					queryInfo.cam = 'pancam';
 				}else if(args[0] == "spirit") {
 					rover = "spirit";
-					queryInfo.sol = Math.floor(Math.random()*2208);
+					if (spiritMaxSol == 0) {
+						spiritMaxSol = await latestRoverSol('spirit')
+					}
+					queryInfo.sol = Math.floor(Math.random()*spiritMaxSol);
 					queryInfo.cam = 'pancam';
 				}else if (args[0] == "perseverance") {
 					rover = "perseverance"
-					//DEBUGGING FIX NEXT LINE
-					queryInfo.sol = Math.floor(11);
-					message.channel.send("For now, there are only color rover images from a few mars days. Perseverance pictures will not be randomly chosen if `?MarsPic`");
+					if (perseveranceMaxSol == 0) {
+						perseveranceMaxSol = await latestRoverSol('perseverance')
+					}
+					queryInfo.sol = Math.floor(Math.random()*perseveranceMaxSol);
 					if (Math.floor(Math.random()*2) == 0) {
 						queryInfo.cam = 'mcz_right';
 					}else {
@@ -58,22 +74,37 @@ module.exports = {
 
 				if (randomRoverNum === 0){
 					rover = "curiosity";
-					queryInfo.sol = Math.floor(Math.random()*3023);
+					if (curiosityMaxSol == 0) {
+						curiosityMaxSol = await latestRoverSol('curiosity')
+					}
+					queryInfo.sol = Math.floor(Math.random()*curiosityMaxSol);
 					queryInfo.cam = 'mast';
 				}else if (randomRoverNum === 1){
 					rover = "opportunity";
-					queryInfo.sol = Math.floor(Math.random()*5111);
+					if (opportunityMaxSol == 0) {
+						opportunityMaxSol = await latestRoverSol('opportunity')
+					}
+					queryInfo.sol = Math.floor(Math.random()*opportunityMaxSol);
 					queryInfo.cam = 'pancam';
-				}else /*if (randomRoverNum === 2)*/{ //Getting a random photo from perseverance is disabled for now. Not enough pictures.
+				}else if (randomRoverNum === 2){
 					rover = "spirit";
-					queryInfo.sol = Math.floor(Math.random()*2208);
+					if (spiritMaxSol == 0) {
+						spiritMaxSol = await latestRoverSol('spirit')
+					}
+					queryInfo.sol = Math.floor(Math.random()*spiritMaxSol);
 					queryInfo.cam = 'pancam';
-				}/*else{
+				}else{
 					rover = "perseverance"
-					//DEBUGGING CHANGE NEXT LINE
-					queryInfo.sol = Math.floor(11);
-					queryInfo.cam = 'mcz_right';
-				}*/
+					if (perseveranceMaxSol == 0) {
+						perseveranceMaxSol = await latestRoverSol('perseverance')
+					}
+					queryInfo.sol = Math.floor(Math.random()*perseveranceMaxSol);
+					if (Math.floor(Math.random()*2) == 0) {
+						queryInfo.cam = 'mcz_right';
+					}else {
+						queryInfo.cam = 'mcz_left';
+					}
+				}
 
 			} while (await pictureExistsOnSol(queryInfo.sol,queryInfo.cam,rover) == "no" && trycount < 15) ;
 		}
@@ -90,6 +121,15 @@ module.exports = {
 						exists("yes");
 					}
 				})
+			})
+		}
+
+		function latestRoverSol (RoverName) {
+			return new Promise (sol => {
+				client.nasa.MarsPhotos.manifest(RoverName)
+					.then(manifest => {
+						sol(manifest.photo_manifest.max_sol); //This is the resolve function of the promise
+					})
 			})
 		}
 
