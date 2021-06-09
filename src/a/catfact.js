@@ -8,6 +8,12 @@ module.exports = {
         message.channel.send("Getting a cat fact...")
 
         const sendResult = (result) => {
+            //Check that api actually returned a response
+            if (!result.text) {
+                message.channel.send(`I couldn't get a cat fact. Try Again!`);
+                return;
+            }
+
             message.channel.send(`\`${result.text}\``)
         };
 

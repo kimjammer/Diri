@@ -16,6 +16,13 @@ module.exports = {
  				message.channel.send("I couldn't find an answer. Perhaps your question is misspelled or malformed?")
  				return;
  			}
+
+ 			//Check that wolfram alpha returned a answer, if not, tell them there was no answer
+			if (!result.subpods) {
+				message.channel.send("I couldn't find an answer. Perhaps your question is misspelled or malformed?")
+				return;
+			}
+
  			try{
  				const embed = new client.MessageEmbed() //this is Discord.MessageEmbed but put into client for easy access
  					.setAuthor('Diri','https://kimjammer.github.io/Portfolio/img/Diri.png','https://kimjammer-diri.glitch.me/')
