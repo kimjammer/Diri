@@ -50,22 +50,12 @@ const {token,wolfram_token,nasa_token} = require('./config.json');
 const prefix = "?";
 
 const {
-	APOD,
-	EARTH,
-	EPIC,
 	MarsPhotos,
-	Sounds,
 	setNasaApiKey
 }  = require('nasa-sdk');
 
-
-
 client.nasa = {
-	APOD,
-	EARTH,
-	EPIC,
 	MarsPhotos,
-	Sounds
 };
 
 setNasaApiKey(nasa_token);
