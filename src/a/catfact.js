@@ -9,17 +9,17 @@ module.exports = {
 
         const sendResult = (result) => {
             //Check that api actually returned a response
-            if (!result.text) {
+            if (!result) {
                 message.channel.send(`I couldn't get a cat fact. Try Again!`);
                 return;
             }
 
-            message.channel.send(`\`${result.text}\``)
+            message.channel.send(`\`${result.fact}\``);
         };
 
         const getCatFact = () => {
             const xhr = new client.XMLHttpRequest();
-            const adviceUrl = "https://cat-fact.herokuapp.com/facts/random"
+            const url = "https://catfact.ninja/fact"
 
             xhr.responseType = 'json';
 
@@ -29,7 +29,7 @@ module.exports = {
                 }
             };
 
-            xhr.open('GET',adviceUrl);
+            xhr.open('GET',url);
             xhr.send();
         }
 
