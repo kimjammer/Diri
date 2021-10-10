@@ -1,18 +1,24 @@
-const Discord = require('discord.js');
-const client = new Discord.Client({ ws: { intents: Discord.Intents.ALL}});
+const { Client, Collection, Intents, MessageEmbed, Snowflake} = require('discord.js');
 
-client.attachment = Discord.MessageAttachment;
-client.MessageEmbed = Discord.MessageEmbed;
-client.ReactionCollector = Discord.ReactionCollector;
+//Add required intents
+const botIntents = new Intents();
+botIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_INTEGRATIONS, Intents.FLAGS.GUILD_WEBHOOKS, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS)
+
+const client = new Client({ intents: botIntents});
+
+client.attachment = Client.MessageAttachment;
+client.MessageEmbed = MessageEmbed;
+client.ReactionCollector = Client.ReactionCollector;
+
+const regCmds = require('./registerCommands.js');
 
 //Your(the bot creator's) user ID here. Only used for debug mode.
-const botAuthor = "424546246980665344"
+client.botAuthor = "424546246980665344";
 
 //ytdl so the bot can stream music to a voice channel
 client.ytdl = require('ytdl-core');
-//This object stores key:[musicStream,voiceChannel] pairs which represent music streams
-//and the voice channel they're in. {guildID: [musicStream,voiceChannel], guildID: [musicStream,voiceChannel]}
-client.musicStreams = {};
+//This object stores key:MusicSubscription pairs which is subscription information
+client.musicStreams = new Map();
 
 client.ytfps = require('ytfps');
 
@@ -46,23 +52,9 @@ if (!fs.existsSync(dirName)) {
 }
 const db = new Database(dblocation);
 
-const {token,wolfram_token,nasa_token} = require('./config.json');
-const prefix = "?";
+const {token} = require('./config.json');
 
-const {
-	MarsPhotos,
-	setNasaApiKey
-}  = require('nasa-sdk');
-
-client.nasa = {
-	MarsPhotos,
-};
-
-setNasaApiKey(nasa_token);
-
-client.XMLHttpRequest = require('xhr2');
-
-client.wolfram = require('wolfram').createClient(wolfram_token);
+client.fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 //Temporary April Fools joke
 /* To activate, get translate on npm, or insert ["translate": "^1.2.3",] into package.json
@@ -71,16 +63,21 @@ translate.engine = "libre";
 translate.url = "https://libretranslate.com/translate"
  */
 
-client.commands = new Map();
+//Get and save commands
+client.commands = new Collection();
 const commandFiles = fs.readdirSync('./a').filter(file => file.endsWith('.js'));
+
 for (const file of commandFiles) {
 	const command = require(`./a/${file}`);
-	client.commands.set(command.name.toLowerCase(), command);
+	client.commands.set(command.data.name, command);
 }
+
+//Run script to register all slash commands
+regCmds.run(/*'627627950228897819'*/);
 
 client.on('ready', () => {
 	console.log('Diri is online');
-	client.user.setActivity("?help",{type: "LISTENING"})
+	client.user.setActivity("to you",{type: "LISTENING"})
 
 	const TableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='UserPoints';",(error,table) =>{
 		if (error){
@@ -90,7 +87,7 @@ client.on('ready', () => {
 		});
 	if (!TableExists.get()){
 		const createTable = db.prepare("CREATE TABLE UserPoints (id INTEGER PRIMARY KEY NOT NULL, userId TEXT NOT NULL, guildId TEXT NOT NULL, username TEXT, points INTEGER, level INTEGER);", error => {
-		console.log('Initilized!')
+		console.log('Initialized!')
 		if (error) {
 			console.log(error)
 		}
@@ -98,74 +95,28 @@ client.on('ready', () => {
 		createTable.run();
 	}
 
-
-
 	client.getPoints = db.prepare("SELECT * FROM UserPoints WHERE userId = ? AND guildId = ? ;",(error) => {if (error){console.log(error)}});
     client.setPoints = db.prepare("INSERT OR REPLACE INTO UserPoints (id, userId, guildId, username, points, level) VALUES (@id, @userId, @guildId, @username, @points, @level);",error => {if (error){console.log(error)}});
     client.createUser = db.prepare("INSERT INTO UserPoints (id, userId, guildId, username, points, level) VALUES (@id, @userId, @guildId, @username, @points, @level);",error => {if(error){console.log(error)}});
 });
 
-client.on('message',message => {
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
 
-	if (!message.content.startsWith(prefix) || message.author.bot) return;
-	//Temporary April Fools Joke
-	/*
-	if (message.author.bot) return;
-	if (!message.content.startsWith(prefix)) {
-		try {
-			//If message isn't command, do the random translation now, and return
-			randomTranslate(message);
-		}catch (e) {
-			console.log(e);
-		}
-		return;
-	}
-	 */
+	const command = client.commands.get(interaction.commandName);
 
-	let msgContents = message.content.slice(prefix.length).split(/ +/);
-	let commandName = msgContents.shift().toLowerCase();
-	let command = client.commands.get(commandName);
-	let args = msgContents.map(element => {
-		//Dark regular expression magic that will check if a string is a youtube video link.
-		let ytLinkRegex = new RegExp('(?:.+?)?(?:\\/v\\/|watch\\/|\\?v=|\\&v=|youtu\\.be\\/|\\/v=|^youtu\\.be\\/|watch\\%3Fv\\%3D)([a-zA-Z0-9_-]{11})+')
-		//If the argument is a yt link (for the music section) don't make it lowercase. (YT links are case sensitive)
-		if (ytLinkRegex.test(element)) {
-			return element;
-		}else{
-			return element.toLowerCase();
-		}
-	});
-
-	let reply = ''
-
-	if (!client.commands.has(commandName)) return;
-
-	if (command.guildOnly && !message.guild) { //If command is guild only and there is no guild that the message was sent from. (Direct message)
-		message.channel.send("You can only use this command in a server.");
-		return;
-	}
-
-	//if the last argument is debug, and the sender is the bot's creator, do debug things
-	client.debugMode = false;
-	if (args[args.length - 1] == "debug") {
-		if (message.author.id == botAuthor) {
-			client.debugMode = true;
-		}else{
-			message.channel.send(`Debug Mode Access Denied.`)
-		}
-	}
+	if (!command) return;
 
 	try {
-		command.execute(message,args,client); //message is the message object so the code can call message.channel.send() or etc
-	}catch(err){
-		console.log(err);
-		reply = 'Something went wrong. :('
-		message.channel.send(reply);
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
-
 });
 
-client.on('message',message => {
+
+client.on('messageCreate',message => {
 	if(message.author.bot) return;
 
 	if(!message.guild) return;

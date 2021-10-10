@@ -1,10 +1,20 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+const cmdName = 'marco';
+const cmdDescription = 'Will respond polo';
+
 module.exports = {
-	name: 'marco',
-	description: 'Will respond polo',
+	name: cmdName,
+	description: cmdDescription,
 	usage: `?marco`,
 	category: "fun",
 	guildOnly: false,
-	execute (message,args) {
-		message.channel.send('Polo!');
+
+	data: new SlashCommandBuilder()
+		.setName(cmdName)
+		.setDescription(cmdDescription),
+
+	async execute (interaction) {
+		await interaction.reply("Polo!");
 	}
 };

@@ -1,16 +1,33 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+const cmdName = 'help';
+const cmdDescription = 'See all of the commands, or get info on a specific command.';
+
+//TODO: Update the help command to use interaction buttons.
 module.exports = {
-	name: 'help',
-	description: 'See all of the commands, or get info on a specific command.',
+	name: cmdName,
+	description: cmdDescription,
 	usage: `?help [optional: command]`,
 	category: "general",
 	guildOnly: false,
-	async execute(message,args,client) {
+
+	data: new SlashCommandBuilder()
+		.setName(cmdName)
+		.setDescription(cmdDescription)
+		.addStringOption(option =>
+			option
+				.setName('command')
+				.setDescription('The command to get info on')),
+
+	async execute(interaction) {
+		interaction.deferReply();
+		const requestedCommand = interaction.options.getString('command')
 
 		const limit = 20*1000;
 
 		const removeReaction = async (menu, message, emoji) => {
 			try {
-				menu.reactions.cache.find(r => r.emoji.name == emoji).users.remove(message.author.id);
+				menu.reactions.cache.find(r => r.emoji.name == emoji).users.remove(interaction.author.id);
 			} catch(err) {}
 		}
 
@@ -21,13 +38,13 @@ module.exports = {
 		}
 
 		const filter = (reaction, user) => {
-			return ['🇬', '🇫', '🗑'].includes(reaction.emoji.name) && user.id == message.author.id;
+			return ['🇬', '🇫', '🗑'].includes(reaction.emoji.name) && user.id == interaction.author.id;
 		};
 
-		if (args[0] == undefined) { //If it is just ?help with no arguments
+		if (!requestedCommand) { //If it is just ?help with no arguments
 
 			//Set up the help pages
-			client.commands.forEach((value, key, map) => {
+			interaction.client.commands.forEach((value, key, map) => {
 				if (value.category == "general") {
 					pages.$1.fields.push({name: value.name ,value: `${value.description} \n Usage: \`${value.usage}\``});
 				}else if (value.category == "fun") {
@@ -37,7 +54,7 @@ module.exports = {
 				}
 			})
 
-			const helpEmbed = new client.MessageEmbed()
+			const helpEmbed = new interaction.client.MessageEmbed()
 				.setAuthor('Diri','https://kimjammer.github.io/Portfolio/img/Diri.png','https://diri-robot.web.app/')
 				.setColor(0x03fc30)
 				.setTitle(`Help Menu`)
@@ -46,7 +63,7 @@ module.exports = {
 				.setFooter("Menu will deactivate after 20 seconds. In that case, run \`?help\` again.")
 
 			//send embed and wait for response.
-			const menu =  await message.channel.send(helpEmbed);
+			const menu =  await interaction.followUp(helpEmbed);
 
 			//React to the message and create the buttons
 			await menu.react('🇬');
@@ -68,7 +85,7 @@ module.exports = {
 							await menu.edit(new client.MessageEmbed(pages.$1));
 
 							// restart the listener (This function)
-							getReactions(message, menu, limit, filter);
+							await getReactions(message, menu, limit, filter);
 						}else if (reaction.emoji.name == "🇫") {
 							//Try to remove the old reaction
 							await removeReaction(menu, message, "🇫");
@@ -77,7 +94,7 @@ module.exports = {
 							await menu.edit(new client.MessageEmbed(pages.$2));
 
 							// restart the listener (This function)
-							getReactions(message, menu, limit, filter);
+							await getReactions(message, menu, limit, filter);
 
 						}else if (reaction.emoji.name == "🗑") {
 							// Delete the menu instantly, returning so the listener fully stops
@@ -89,33 +106,33 @@ module.exports = {
 					}).catch(() => {});
 			}
 
-			getReactions(message, menu, limit, filter);
+			await getReactions(message, menu, limit, filter);
 
 		}else { //If there are arguments and it is asking for info on a specific command
 			let reply;
 			let serverOnlyTxt;
-			if (client.commands.has(args[0])) {
+			if (interaction.client.commands.has(requestedCommand.toLowerCase())) {
 
 				//See if the command is guildOnly.
-				if (client.commands.get(args[0]).guildOnly) {
+				if (interaction.client.commands.get(requestedCommand).guildOnly) {
 					serverOnlyTxt = "Yes";
 				}else {
 					serverOnlyTxt = "No";
 				}
 
 				//Create new embed with information about the requested command
-				const commandEmbed = new client.MessageEmbed()
+				const commandEmbed = new interaction.client.MessageEmbed()
 					.setAuthor('Diri','https://kimjammer.github.io/Portfolio/img/Diri.png','https://diri-robot.web.app/')
 					.setColor(0x03fc30)
-					.setTitle(client.commands.get(args[0]).name)
-					.addField(`Description:`, client.commands.get(args[0]).description, false)
-					.addField(`Usage:`, `\`${client.commands.get(args[0]).usage}\``, false)
+					.setTitle(interaction.client.commands.get(requestedCommand).name)
+					.addField(`Description:`, interaction.client.commands.get(requestedCommand).description, false)
+					.addField(`Usage:`, `\`${interaction.client.commands.get(requestedCommand).usage}\``, false)
 					.addField(`Only usable in servers?`, `${serverOnlyTxt}`,false)
 
-				message.channel.send(commandEmbed);
+				await interaction.followUp(commandEmbed);
 			}else{
 				reply = "That command doesn't exist!"
-				message.channel.send(reply);
+				await interaction.followUp({content: reply, ephemeral:true});
 			}
 		}
 

@@ -1,11 +1,34 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const {nasa_token} = require("../config.json");
+
+const cmdName = 'marspic';
+const cmdDescription = 'A random picture from one of the mars rovers';
+
 module.exports = {
-	name: 'MarsPic',
-	description: 'A random picture from one of the mars rovers',
+	name: cmdName,
+	description: cmdDescription,
 	usage: `?marsPic [optional: curiosity/opportunity/spirit/perseverance]`,
 	category: "fun",
 	guildOnly: false,
-	async execute (message,args,client) {
-		message.channel.send('Looking for a picture...')
+
+	data: new SlashCommandBuilder()
+		.setName(cmdName)
+		.setDescription(cmdDescription)
+		.addStringOption(option =>
+		 	option.setName('rover')
+				.setDescription('Select a rover to see pictures from.')
+				.addChoice('Curiosity','curiosity')
+				.addChoice('Opportunity', 'opportunity')
+				.addChoice('Spirit', 'spirit')
+				.addChoice('Perseverance', 'perseverance')),
+
+	async execute (interaction) {
+		interaction.deferReply();
+
+		const {nasa_token} = require('../config.json');
+
+		const roverOpt = interaction.options.getString('rover');
+
 		const randomRoverNum = Math.floor(Math.random()*4);
 		let rover = "";
 		let queryInfo = {};
@@ -19,10 +42,10 @@ module.exports = {
 		let trycount = 0;
 
 		//If there is a rover specified, get a random day to get a picture from specified rover.
-		if (args[0] && args[0] != "debug") {
+		if (roverOpt) {
 			/*Basically, diri picks a random number with the max being the latest sol the rover has lived on mars.
 			Then, it makes a request to the nasa api and gets all the pictures taken that day with a specific camera,
-			one that I know has good pictures. It looks at the recieved info and sees if there were any pictures taken
+			one that I know has good pictures. It looks at the received info and sees if there were any pictures taken
 			with the camera on that day. If there wasn't, then it will pick a new random number and try again, with
 			the maximum number of tries being 15. After that, it will give up.
 			*/
@@ -30,28 +53,28 @@ module.exports = {
 			do {
 				trycount++;
 
-				if (args[0] == "curiosity") {
+				if (roverOpt == "curiosity") {
 					rover = "curiosity";
 					if (curiosityMaxSol == 0) {
 						curiosityMaxSol = await latestRoverSol('curiosity')
 					}
 					queryInfo.sol = Math.floor(Math.random()*curiosityMaxSol);
 					queryInfo.cam = 'mast';
-				}else if (args[0] == "opportunity") {
+				}else if (roverOpt == "opportunity") {
 					rover = "opportunity";
 					if (opportunityMaxSol == 0) {
 						opportunityMaxSol = await latestRoverSol('opportunity')
 					}
 					queryInfo.sol = Math.floor(Math.random()*opportunityMaxSol);
 					queryInfo.cam = 'pancam';
-				}else if(args[0] == "spirit") {
+				}else if(roverOpt == "spirit") {
 					rover = "spirit";
 					if (spiritMaxSol == 0) {
 						spiritMaxSol = await latestRoverSol('spirit')
 					}
 					queryInfo.sol = Math.floor(Math.random()*spiritMaxSol);
 					queryInfo.cam = 'pancam';
-				}else if (args[0] == "perseverance") {
+				}else if (roverOpt == "perseverance") {
 					rover = "perseverance"
 					if (perseveranceMaxSol == 0) {
 						perseveranceMaxSol = await latestRoverSol('perseverance')
@@ -62,9 +85,6 @@ module.exports = {
 					}else {
 						queryInfo.cam = 'mcz_left';
 					}
-				}else{
-					message.channel.send("Please use a valid rover name: curiosity, spirit, opportunity, or perseverance. `?MarsPic Curiosity/Spirit/Opportunity/Perseverance`")
-					return;
 				}
 			} while (await pictureExistsOnSol(queryInfo.sol,queryInfo.cam,rover) == "no" && trycount < 15);
 
@@ -94,7 +114,7 @@ module.exports = {
 					queryInfo.sol = Math.floor(Math.random()*spiritMaxSol);
 					queryInfo.cam = 'pancam';
 				}else{
-					rover = "perseverance"
+					rover = "perseverance";
 					if (perseveranceMaxSol == 0) {
 						perseveranceMaxSol = await latestRoverSol('perseverance')
 					}
@@ -106,57 +126,55 @@ module.exports = {
 					}
 				}
 
-			} while (await pictureExistsOnSol(queryInfo.sol,queryInfo.cam,rover) == "no" && trycount < 15) ;
+			} while (await pictureExistsOnSol(queryInfo.sol,queryInfo.cam,rover) == false && trycount < 15) ;
 		}
 
-		function pictureExistsOnSol (sol,cam,RoverName) {
-			return new Promise (exists => {
-				client.nasa.MarsPhotos.fetch(RoverName, {
-					sol: sol,
-					camera: cam
-				}).then(data => {
-					if (data.photos[1] == null) {
-						exists("no");
-					}else{
-						exists("yes");
-					}
-				})
-			})
-		}
-
-		function latestRoverSol (RoverName) {
-			return new Promise (sol => {
-				client.nasa.MarsPhotos.manifest(RoverName)
-					.then(manifest => {
-						sol(manifest.photo_manifest.max_sol); //This is the resolve function of the promise
-					})
-			})
-		}
-
-		client.nasa.MarsPhotos.fetch(rover,{
-			sol: queryInfo.sol,
-			camera: queryInfo.cam
-		})
-		.then(data => {
-			let picNum = 1
-			message.channel.send(new client.attachment(data.photos[picNum].img_src));
-			message.channel.send(`This is from the ${data.photos[picNum].rover.name} rover on sol ${data.photos[picNum].sol}. Taken on the ${data.photos[picNum].camera.full_name}.`)
-			if (client.debugMode) {
-				message.channel.send((`DEBUG MODE: This picture took ${trycount} tries.`))
+		async function pictureExistsOnSol (sol,cam,RoverName) {
+			const url = `https://api.nasa.gov/mars-photos/api/v1/rovers/${RoverName}/photos?api_key=${nasa_token}&sol=${sol}&camera=${cam}`;
+			const response = await interaction.client.fetch(url);
+			const data = await response.json();
+			if (data.photos[1] == null) {
+				return false;
+			}else{
+				return true;
 			}
-		}).catch(err => {
-			console.log(err)
+		}
+
+		async function latestRoverSol (RoverName) {
+			const url = `https://api.nasa.gov/mars-photos/api/v1/manifests/${RoverName}?api_key=${nasa_token}`;
+			const response = await interaction.client.fetch(url);
+			const data = await response.json();
+			return data.photo_manifest.max_sol;
+		}
+
+		const url = `https://api.nasa.gov/mars-photos/api/v1/rovers/${rover}/photos?api_key=${nasa_token}&sol=${queryInfo.sol}&camera=${queryInfo.cam}`;
+
+		try {
+			const response = await interaction.client.fetch(url);
+			const data = await response.json();
+
+			let picNum = 1
+			await interaction.followUp({content:`This is from the ${data.photos[picNum].rover.name} rover on sol ${data.photos[picNum].sol}. Taken on the ${data.photos[picNum].camera.full_name}.`,
+				files: [data.photos[picNum].img_src]});
+			if (interaction.client.debugMode) {
+				interaction.client.debugMode = false;
+				await interaction.followUp(`DEBUG MODE: This picture took ${trycount} tries.`);
+			}
+		}catch (e) {
+			console.log(e)
 			if (trycount >= 15) {
-				message.channel.send('I couldn\'t retrieve a picture within 15 tries. Try again!')
-				if (client.debugMode) {
-					message.channel.send((`DEBUG MODE: This picture took ${trycount} tries.`))
+				await interaction.followUp('I couldn\'t retrieve a picture within 15 tries. Try again!');
+				if (interaction.client.debugMode) {
+					interaction.client.debugMode = false;
+					await interaction.followUp(`DEBUG MODE: This picture took ${trycount} tries.`);
 				}
 			}else {
-				message.channel.send(`I couldn\`t retrieve a picture.`);
-				if (client.debugMode) {
-					message.channel.send((`DEBUG MODE: This picture took ${trycount} tries. Error: ${err}`))
+				await interaction.followUp(`I couldn\`t retrieve a picture.`);
+				if (interaction.client.debugMode) {
+					interaction.client.debugMode = false;
+					await interaction.client.followUp(`DEBUG MODE: This picture took ${trycount} tries. Error: ${e}`);
 				}
 			}
-		});
+		}
 	}
 };

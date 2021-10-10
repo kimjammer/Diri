@@ -1,6 +1,6 @@
 {
   "name": "Diri",
-  "version": "1.4.3",
+  "version": "2.0.0",
   "description": "Discord Interpretation and Recognition Interface",
   "homepage": "https://diri-robot.web.app/",
   "main": "main.js",
@@ -13,13 +13,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@discordjs/builders": "^0.6.0",
     "@discordjs/opus": "^0.4.0",
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "@discordjs/voice": "^0.6.0",
     "better-sqlite3": "^7.1.1",
-    "discord.js": "^12.5.1",
+    "discord-api-types": "^0.22.0",
+    "discord.js": "^13.1.0",
     "ffmpeg-static": "^4.2.7",
-    "nasa-sdk": "^1.1.11",
-    "wolfram": "kimjammer/node-wolfram",
-    "xhr2": "^0.2.0",
+    "libsodium-wrappers": "^0.7.9",
+    "node-fetch": "^3.0.0",
     "ytdl-core": "^4.5.0",
     "ytfps": "^1.0.4"
   },

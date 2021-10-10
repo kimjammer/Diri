@@ -1,125 +1,206 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, NoSubscriberBehavior, createAudioResource, StreamType,
+	entersState, AudioPlayerStatus
+} = require('@discordjs/voice');
+const {MusicSubscription} = require('../classes/musicSubscription.js');
+
+const cmdName = 'music';
+const cmdDescription = 'Plays music in the voice channel you are in!';
+
 module.exports = {
-	name: 'Music',
-	description: 'Plays music in the voice channel you are in!',
+	name: cmdName,
+	description: cmdDescription,
 	usage: `?music [start (optional:jazz or youtube link),pause,resume,end,volume (0-150)]`,
 	category: "general",
 	guildOnly: true,
-	async execute (message,args,client) {
-		let connection;
+
+	data: new SlashCommandBuilder()
+		.setName(cmdName)
+		.setDescription(cmdDescription)
+		.addSubcommandGroup(subcommandGroup =>
+			subcommandGroup.setName('start')
+				.setDescription('Start a song.')
+				.addSubcommand(subcommand =>
+					subcommand
+						.setName('youtube')
+						.setDescription('Play a youtube video')
+						.addStringOption(option =>
+							option
+								.setName('url')
+								.setDescription('The URL of the youtbe video')
+								.setRequired(true)))
+				.addSubcommand(subcommand =>
+					subcommand
+						.setName('jazz')
+						.setDescription('Play a random jazz song')))
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName('pause')
+				.setDescription('Pause the music'))
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName('play')
+				.setDescription('Resume the music'))
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName('end')
+				.setDescription('End the music stream')),
+
+	async execute (interaction) {
+		await interaction.deferReply();
+
 		//Dark regular expression magic that will check if a string is a youtube video link.
 		let ytLinkRegex = new RegExp('(?:.+?)?(?:\\/v\\/|watch\\/|\\?v=|\\&v=|youtu\\.be\\/|\\/v=|^youtu\\.be\\/|watch\\%3Fv\\%3D)([a-zA-Z0-9_-]{11})+')
+		let targetCommand = interaction.options.getSubcommand()
 
-		if (args[0] == "start") {
+		//If there is a existing music stream, it will grab it here.
+		let existingSubscription = interaction.client.musicStreams.get(interaction.guildId)
+
+		if (targetCommand == "youtube" || targetCommand == "jazz") {
+			/*
 			//If there is a active music stream in this server, tell them that and don't play anything.
 			//The client.musicStreams object stores key:[musicStream,voiceChannel] pairs which represent music streams
 			//and the voice channel they're in. {guildID: [musicStream,voiceChannel], guildID: [musicStream,voiceChannel]}
-			if (client.musicStreams[`${message.guild.id}`]) {
+			if (interaction.client.musicStreams[`${interaction.guild.id}`]) {
 				message.channel.send("There is already a music stream in this server!");
 				return;
-			}
+			}*/
+			let connection;
+			let audioPlayer;
 
 			// Join the voice channel the message sender is in.
-			if (message.member.voice.channel) {
-				connection = await message.member.voice.channel.join();
+			if (interaction.member.voice.channel) {
+				 connection = joinVoiceChannel({
+					channelId: interaction.member.voice.channelId,
+					guildId: interaction.guild.id,
+					adapterCreator: interaction.member.guild.voiceAdapterCreator,
+				 });
 			} else {
-				message.reply('You need to join a voice channel first.');
+				await interaction.followUp({content: 'You need to join a voice channel first.',ephemeral:true});
 				return;
 			}
 
-			if (args[1] == "jazz") {
+			if (targetCommand == "jazz") {
 				try {
-					const playlist = await client.ytfps('PL_pFtRZACW0Yy2D-J5MRWAer2Ii6xQIst');
+					const playlist = await interaction.client.ytfps('PL_pFtRZACW0Yy2D-J5MRWAer2Ii6xQIst');
 
 					//Pick random number
 					let randomJazzNumber = Math.floor(Math.random()*playlist.video_count);
 
 					let randomJazzSong = playlist.videos[randomJazzNumber]
 
-					//Adds a property:item pair - guildID: [musicStream,voiceChannel] to the musicStreams object so it can be accessed later.
 					//Play the random jazz music
-					client.musicStreams[`${message.guild.id}`] = [connection.play(client.ytdl(`${randomJazzSong.url}`, { filter: 'audioonly' })), message.member.voice.channel];
+					const audioStream = interaction.client.ytdl(`${randomJazzSong.url}`, { filter: 'audioonly' })
+					const audioResource = createAudioResource(audioStream, {
+						inputType: StreamType.Arbitrary,
+					})
+					audioPlayer = createAudioPlayer({
+						behaviors: {
+							noSubscriber: NoSubscriberBehavior.Pause
+						}
+					})
+					audioPlayer.play(audioResource);
+					await entersState(audioPlayer, AudioPlayerStatus.Playing, 5_000);
+					const subscription = new MusicSubscription(
+						interaction.guild.id,
+						interaction.member.voice.channelId,
+						connection,
+						audioPlayer,
+						audioResource)
+
+					//Adds a property:item pair - guildID: MusicSubscription to the musicStreams object so it can be accessed later.
+					interaction.client.musicStreams.set(interaction.guildId, subscription);
 
 					//Tell the user
-					message.channel.send(`Playing the random jazz song: `+"<"+`${randomJazzSong.title}`+">"+`. It is ${randomJazzSong.length} long. ${randomJazzSong.url}`)
+					await interaction.followUp(`Playing the random jazz song: `+"<"+`${randomJazzSong.title}`+">"+`. It is ${randomJazzSong.length} long. ${randomJazzSong.url}`)
 				}catch(err) {
 					throw err;
 					return;
 				};
-			}else if (ytLinkRegex.test(args[1])) {
+			}else if (ytLinkRegex.test(interaction.options.getString('url'))) {
+				const youtubeURL = interaction.options.getString('url')
+				try {
+					// Find the song
+					const songInfo = await interaction.client.ytdl.getInfo(youtubeURL);
+				} catch (error) {
+					await interaction.followUp({content: "Couldn't find that youtube video",ephemeral:true});
+					return;
+				}
+
 				//Play the youtube video
-				client.musicStreams[`${message.guild.id}`] = [connection.play(client.ytdl(`${args[1]}`, { filter: 'audioonly' })), message.member.voice.channel];
+				const audioStream = interaction.client.ytdl(`${youtubeURL}`, { filter: 'audioonly' })
+				const audioResource = createAudioResource(audioStream, {
+					inputType: StreamType.Arbitrary,
+				})
+				audioPlayer = createAudioPlayer({
+					behaviors: {
+						noSubscriber: NoSubscriberBehavior.Pause
+					}
+				})
+				audioPlayer.play(audioResource);
+
+				interaction.client.musicStreams.set(interaction.guildId, {
+					channelId: interaction.member.voice.channel,
+					voiceConnection: connection,
+					audioPlayer: audioPlayer,
+				})
+				const subscription = new MusicSubscription(
+					interaction.guild.id,
+					interaction.member.voice.channelId,
+					connection,
+					audioPlayer,
+					audioResource)
+				//Adds a property:item pair - guildID: MusicSubscription to the musicStreams object so it can be accessed later.
+				interaction.client.musicStreams.set(interaction.guildId, subscription);
 
 				//Tell the user
-				message.channel.send(`Playing the youtube video: `+"<"+`${args[1]}`+">")
+				await interaction.followUp(`Playing the youtube video: `+"<"+`${youtubeURL}`+">");
 			}else {
-				message.channel.send("That's not a valid option or youtube link!");
+				await interaction.followUp({content:"That's not a valid option or youtube link!",ephemeral:true});
 				return;
 			}
 
 			//When song is finished, delete dispatcher and leave.
-			client.musicStreams[`${message.guild.id}`][0].on("finish", () => {
+			audioPlayer.on(AudioPlayerStatus.Idle, () => {
 				//Destroy music dispatcher
-				client.musicStreams[`${message.guild.id}`][0].destroy();
-				//Leave voice channel
-				client.musicStreams[`${message.guild.id}`][1].leave();
-				//Delete musicStream entry from client.musicStreams
-				delete client.musicStreams[`${message.guild.id}`]
+				audioPlayer.stop();
 			})
 
-		}else if (args[0] == "pause") {
+		}else if (targetCommand == "pause") {
 			//Check if there isn't a music stream in this server
-			if (client.musicStreams[`${message.guild.id}`][0].paused) {
-				message.channel.send("There is no currently playing music stream to pause!");
+			if (!existingSubscription) {
+				await interaction.followUp({content: "There is no currently playing music stream to pause!",ephemeral:true});
 				return;
 			}
 
 			//Pause the music stream
-			client.musicStreams[`${message.guild.id}`][0].pause();
-			message.channel.send("Music Paused");
-		}else if (args[0] == "resume" || args[0] == "play"){
+			existingSubscription.audioPlayer.pause();
+			await interaction.followUp("Music Paused");
+		}else if (targetCommand == "play"){
 			//Check if there isn't a music stream in this server
-			if (!client.musicStreams[`${message.guild.id}`][0].paused) {
-				message.channel.send("There is no paused music stream to resume!");
+			if (!existingSubscription) {
+				await interaction.followUp({content: "There is no paused music stream to resume!",ephemeral:true});
 				return;
 			}
 
 			//Resume the music stream
-			client.musicStreams[`${message.guild.id}`][0].resume();
-			message.channel.send("Music Resumed");
-		}else if (args[0] == "end"||args[0] == "stop"){
+			existingSubscription.audioPlayer.unpause();
+			await interaction.followUp("Music Resumed");
+		}else if (targetCommand == "end"){
 			//Check if there isn't a music stream in this server
-			if (!client.musicStreams[`${message.guild.id}`]) {
-				message.channel.send("There is no music stream to end!");
+			if (!existingSubscription) {
+				await interaction.followUp({content: "There is no music stream to end!",ephemeral:true});
 				return;
 			}
 
 			//Destroy the music dispatcher
-			client.musicStreams[`${message.guild.id}`][0].destroy();
-
-			//Leave the voice channel
-			client.musicStreams[`${message.guild.id}`][1].leave();
+			existingSubscription.voiceConnection.destroy();
 
 			//Delete the guildID:[musicStream,voiceChannel] pair from the client.musicStreams object
-			delete client.musicStreams[`${message.guild.id}`];
-		} else if (args[0] == "volume") {
-			//Quick check to make sure the argument inputted is a number and not too large to prevent eardrum destruction.
-			//Tries to convert the argument into a number (since arugments are always string), then checks if it succeeded.
-			//I don't know why the .toString() is needed - even when it's (parseFloat(args[1]) == NaN) (with no quotes) it doesn't work.
-			if (parseFloat(args[1]).toString() == 'NaN'){
-				message.channel.send("The volume must be a number");
-				return;
-			}else if (parseFloat(args[1]) > 150 || parseFloat(args[1]) <= 0) {
-				message.channel.send("The volume must be more than 0% and less than 150%.");
-				return;
-			}else {
-				//Divide volume by a hundred, since in discord.js 1 is 100%
-				client.musicStreams[`${message.guild.id}`][0].setVolume(parseFloat(args[1])/100);
-				message.channel.send(`Volume set to ${parseFloat(args[1])}%.`);
-			}
+			interaction.client.musicStreams.delete(interaction.guildId);
+			await interaction.followUp({content: "Music ended",ephemeral:true})
 		}else{
-			message.channel.send("That's not a valid music command!");
+			await interaction.followUp({content: "That's not a valid music command!", ephemeral:true});
 		}
-
-
 	}
 };

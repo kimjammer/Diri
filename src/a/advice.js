@@ -1,36 +1,38 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+const cmdName = 'advice';
+const cmdDescription = 'Gives some good advice';
+
 module.exports = {
-    name: 'advice',
-    description: 'Gives some good advice',
-    usage: `?advice`,
-    category: "fun",
-    guildOnly: false,
-    execute(message,args,client) {
-        message.channel.send("Getting advice...")
+	name: cmdName,
+	description: cmdDescription,
+	usage: `?advice`,
+	category: "fun",
+	guildOnly: false,
 
-        const sendResult = (result) => {
-            message.channel.send(`\`${result.slip.advice}\``)
-            if (client.debugMode) {
-                message.channel.send(`DEBUG MODE: Advice slip ID is ${result.slip.slip_id}`)
-            }
-        };
+	data: new SlashCommandBuilder()
+		.setName(cmdName)
+		.setDescription(cmdDescription),
 
-        const getAdvice = () => {
-            const xhr = new client.XMLHttpRequest();
-            const adviceUrl = "https://api.adviceslip.com/advice"
+	async execute(interaction) {
+		await interaction.deferReply();
 
-            xhr.responseType = 'json';
+		const sendResult = (result) => {
+			interaction.followUp({content:`\`${result.slip.advice}\``})
 
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === client.XMLHttpRequest.DONE) {
-                    sendResult(xhr.response);
-                }
-            };
+			if (interaction.client.debugMode && interaction.user.id === interaction.client.botAuthor) {
+				interaction.followUp(`DEBUG MODE: Advice slip ID is ${result.slip.id}`)
+				interaction.client.debugMode = false;
+			}
+		};
 
-            xhr.open('GET',adviceUrl);
-            xhr.send();
-        }
+		async function getAdvice() {
+			const response = await interaction.client.fetch('https://api.adviceslip.com/advice');
+			const data = await response.json();
 
-        getAdvice();
+			sendResult(data);
+		}
 
-    }
+		await getAdvice();
+	}
 };

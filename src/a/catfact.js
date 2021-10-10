@@ -1,39 +1,39 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+const cmdName = 'catfact';
+const cmdDescription = 'A random fact about cats will be given';
+
 module.exports = {
-    name: 'catFact',
-    description: 'A random fact about cats will be given',
+    name: cmdName,
+    description: cmdDescription,
     usage: `?catFact`,
     category: "fun",
     guildOnly: false,
-    execute(message,args,client) {
-        message.channel.send("Getting a cat fact...")
+
+    data: new SlashCommandBuilder()
+        .setName(cmdName)
+        .setDescription(cmdDescription),
+
+    async execute(interaction) {
+        interaction.deferReply();
 
         const sendResult = (result) => {
             //Check that api actually returned a response
             if (!result) {
-                message.channel.send(`I couldn't get a cat fact. Try Again!`);
+                interaction.editReply(`I couldn't get a cat fact. Try Again!`);
                 return;
             }
 
-            message.channel.send(`\`${result.fact}\``);
+            interaction.editReply(`\`${result.fact}\``);
         };
 
-        const getCatFact = () => {
-            const xhr = new client.XMLHttpRequest();
-            const url = "https://catfact.ninja/fact"
+        async function getCatFact() {
+            const response = await interaction.client.fetch('https://catfact.ninja/fact');
+            const data = await response.json();
 
-            xhr.responseType = 'json';
-
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === client.XMLHttpRequest.DONE) {
-                    sendResult(xhr.response);
-                }
-            };
-
-            xhr.open('GET',url);
-            xhr.send();
+            sendResult(data);
         }
 
-        getCatFact();
-
+        await getCatFact();
     }
 };

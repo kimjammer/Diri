@@ -1,31 +1,33 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+const cmdName = 'spacepic';
+const cmdDescription = 'Nasa\'s Astronomy Picture of the Day.';
+
 module.exports = {
-	name: 'SpacePic',
-	description: 'Nasa\'s Astronomy Picture of the Day.',
+	name: cmdName,
+	description: cmdDescription,
 	usage: `?spacePic`,
 	category: "fun",
 	guildOnly: false,
-	execute(message,args,client) {
+
+	data: new SlashCommandBuilder()
+		.setName(cmdName)
+		.setDescription(cmdDescription),
+
+	async execute(interaction) {
+		interaction.deferReply();
+
 		const {nasa_token} = require('../config.json');
-		let pictureInfo;
-		const xhr = new client.XMLHttpRequest();
 		const url = `https://api.nasa.gov/planetary/apod?api_key=${nasa_token}`
 
-		xhr.responseType = 'json';
+		try {
+			const response = await interaction.client.fetch(url);
+			const data = await response.json();
 
-		xhr.onreadystatechange = () => {
-			if (xhr.readyState === client.XMLHttpRequest.DONE) {
-				try {
-					pictureInfo = xhr.response;
-					message.channel.send(new client.attachment(pictureInfo.url));
-					message.channel.send(`aa`)
-				}catch (e) {
-					console.log(e);
-					message.channel.send(`Couldn't retrieve today's picture. Please try again tomorrow.`);
-				}
-			}
-		};
-
-		xhr.open('GET',url);
-		xhr.send();
+			await interaction.editReply({files: [data.url]});
+		}catch (e) {
+			console.log(e);
+			await interaction.editReply(`Couldn't retrieve today's picture. Please try again tomorrow.`);
+		}
 	}
 };
